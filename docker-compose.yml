@@ -1,0 +1,61 @@
+services:
+    mariadb:
+        image: mariadb
+        container_name: mariadb
+        ports:
+            - "3306:3306"
+        environment:
+            - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+            - MYSQL_DATABASE=pokemon
+        volumes:
+            - db-data:/var/lib/mysql
+        networks:
+            - app-network
+        restart: always
+
+    api:
+        container_name: api
+        build:
+            context: ./API_POKEMON
+            dockerfile: Dockerfile
+        ports:
+            - "3001:3001"
+        depends_on:
+            - mariadb
+        networks:
+            - app-network
+        restart: always
+
+    front:
+        container_name: front
+        build:
+            context: ./react-pokemons-app
+            dockerfile: Dockerfile
+        ports:
+            - "3000:3000"
+        depends_on:
+            - mariadb
+        networks:
+            - app-network
+        restart: always
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpmyadmin
+        ports:
+            - "8081:80"
+        environment:
+            - PMA_HOST=mariadb
+        depends_on:
+            - mariadb
+        networks:
+            - app-network
+        restart: always
+
+networks:
+    app-network:
+        driver: bridge
+
+volumes:
+    db-data:
+        driver: local
